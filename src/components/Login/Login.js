@@ -7,7 +7,12 @@ import Button from '../UI/Button/Button';
 
   const emailReducer=(state,action)=>{
     if(action.type ==='USER_INPUT'){
-      return {value:action.val,isValid:action.val.includes('@')}
+      if(action.val.includes('@')){
+        return {value:action.val,isvalid:true}
+      }else{
+
+        return {value:action.val,isValid:null}
+      }
     }
     if(action.type === 'INPUT_BLUR'){
       return {value:state.value,isValid:state.value.includes('@')};
@@ -16,14 +21,37 @@ import Button from '../UI/Button/Button';
   };
 
   const passwordReducer=(state,action)=>{
+    console.log(state);
     if(action.type==='USER_PASSWORD'){
-      return {value:action.val,isValid:action.val.trim()>6}
+      if(action.val.trim().length > 6){
+        return {value:action.val,isValid:true}
+      }else{
+        console.log("hai this is ashok ")
+        return {value:action.val,isValid:false}
+      }
     }
     if(action.type === 'INPUT_BLUR'){
-      return {value:state.value,isValid:state.value.trim()>6};
+      return {value:state.value,isValid:state.value.trim().length > 6};
     }
 
     return { value:state.value,isValid:state.value.trim().length > 6 }
+  }
+
+
+  const collegeReducer= (state,action)=>{
+    console.log(action)
+    if(action.type==='USER_COLLEGE'){
+      if(action.val.trim().length > 3){
+        return {value:action.val,isValid:true}
+      }else{
+        return {value:action.val,isValid:false}
+      }
+    }
+
+    if(action.type==='INPUT_BLUR'){
+      return {value:state.value,isValid:state.value.trim().length > 3}
+    }
+    return {value:state.value,isValid:state.val.trim().length>3}
   }
 
 const Login = (props) => {
@@ -31,11 +59,12 @@ const Login = (props) => {
   // const [emailIsValid, setEmailIsValid] = useState();
   // const [enteredPassword, setEnteredPassword] = useState('');
   // const [passwordIsValid, setPasswordIsValid] = useState();
+  
+  // const [enteredCollegeName,setEnteredCollegeName]=useState('');
+  // const [collegeNameIsvalid,setCollegeNameIsValid]=useState();
+
   const [formIsValid, setFormIsValid] = useState(false);
-
-  const [enteredCollegeName,setEnteredCollegeName]=useState('');
-  const [collegeNameIsvalid,setCollegeNameIsValid]=useState();
-
+  
  const [emailState,dispatchEmail]= useReducer(emailReducer,{
   value:'',
   isValid:null
@@ -46,11 +75,34 @@ const Login = (props) => {
   isValid:null
  })
 
+ const [collegeState,dispatchCollege]=useReducer(collegeReducer,{
+  value:'',
+  isValid:null
+ })
+
+ const {isValid:emailIsValid}=emailState;
+ const {isvalid:passwordIsValid}=passwordState;
+ const {isvalid:collegeNameIsvalid}=collegeState;
+
+ useEffect(()=>{
+  const identifier = setTimeout(()=>{
+    console.log('Cheking form validity');
+    setFormIsValid(
+      emailIsValid && passwordIsValid && collegeNameIsvalid
+    )
+  },500);
+
+  return ()=>{
+    console.log('CLEANUP');
+    clearTimeout(identifier);
+  }
+ },[emailIsValid,passwordIsValid,collegeNameIsvalid])
+
   
   const emailChangeHandler = (event) => {
     dispatchEmail({type:'USER_INPUT',val:event.target.value});
     setFormIsValid(
-            event.target.value.includes('@') && passwordState.isValid && enteredCollegeName.trim().length > 3
+            event.target.value.includes('@') && passwordState.isValid && collegeState.value.trim().length > 3
           );
   };
 
@@ -58,12 +110,12 @@ const Login = (props) => {
     // setEnteredPassword(event.target.value);
     dispatchPasswrod({type:"USER_PASSWORD",val:event.target.value});
     setFormIsValid(
-      emailState.isValid && event.target.value.trim().length > 6 && enteredCollegeName.trim().length > 3
+      emailState.isValid && event.target.value.trim().length > 6 && collegeState.value.trim().length > 3
     );
   };
 
   const collegeChangeHandler=(event)=>{
-    setEnteredCollegeName(event.target.value);
+    dispatchCollege({type:'USER_COLLEGE',val:event.target.value})
     setFormIsValid(
       emailState.isValid && passwordState.isValid && event.target.value.trim().length > 3
     );
@@ -74,11 +126,11 @@ const Login = (props) => {
   };
 
   const validatePasswordHandler = () => {
-   dispatchPasswrod({type:'INPUT_BLUE'})
+   dispatchPasswrod({type:'INPUT_BLUR'})
   };
 
   const validateCollegeHandler = ()=> {
-    setCollegeNameIsValid(enteredCollegeName.trim() > 3)
+    dispatchCollege({type:'INPUT_BLUR'})
   }
 
   const submitHandler = (event) => {
@@ -119,14 +171,14 @@ const Login = (props) => {
         </div>
         <div 
         className={`${classes.control} ${
-          collegeNameIsvalid === false ? classes.invalid :''
+          collegeState.isValid === false ? classes.invalid :''
         }`}
         >
           <label>CollegeName</label>
           <input
           type="text"
           id="collegeName"
-          value={enteredCollegeName}
+          value={collegeState.value}
           onChange={collegeChangeHandler}
           onBlur={validateCollegeHandler}
           />
