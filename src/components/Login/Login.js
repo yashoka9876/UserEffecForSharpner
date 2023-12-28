@@ -1,8 +1,10 @@
-import React, { useEffect, useReducer, useState } from 'react';
+import React, { useContext, useEffect, useReducer, useState } from 'react';
 
 import Card from '../UI/Card/Card';
 import classes from './Login.module.css';
 import Button from '../UI/Button/Button';
+import AuthContext from '../../store/auth-context';
+import Input from '../UI/Input/Input';
 
 
   const emailReducer=(state,action)=>{
@@ -80,6 +82,8 @@ const Login = (props) => {
   isValid:null
  })
 
+ const authCtx=useContext(AuthContext);
+
  const {isValid:emailIsValid}=emailState;
  const {isvalid:passwordIsValid}=passwordState;
  const {isvalid:collegeNameIsvalid}=collegeState;
@@ -135,7 +139,7 @@ const Login = (props) => {
 
   const submitHandler = (event) => {
     event.preventDefault();
-    props.onLogin(emailState.value, passwordState.value);
+    authCtx.onLogin(emailState.value, passwordState.value);
   };
 
   return (
@@ -161,13 +165,20 @@ const Login = (props) => {
           }`}
         >
           <label htmlFor="password">Password</label>
-          <input
+          {/* <input
             type="password"
             id="password"
             value={passwordState.value}
             onChange={passwordChangeHandler}
             onBlur={validatePasswordHandler}
-          />
+          /> */}
+          <Input
+            type="password"
+            id="password"
+            value={passwordState.value}
+            onChange={passwordChangeHandler}
+            onBlur={validatePasswordHandler} 
+           />
         </div>
         <div 
         className={`${classes.control} ${
